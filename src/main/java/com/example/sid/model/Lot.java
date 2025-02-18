@@ -3,6 +3,7 @@ package com.example.sid.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.Random;
 
@@ -23,24 +24,32 @@ public class Lot {
     @Column(nullable = false)
     private String participantCode; // Код участника (3 буквы + 3 цифры)
 
-    @Column(nullable = false)
-    private BigDecimal currentBid; // Текущая ставка
+    @Column
+    private BigDecimal currentBid; // Текущая ставка, может быть null
 
-    public Lot() {
-        this.lotNumber = generateLotNumber();
-        this.lotCode = generateLotCode();
+    // Генерация номера и кода перед сохранением в БД
+    @PrePersist
+    public void prePersist() {
+        if (lotNumber == 0) {
+            this.lotNumber = generateLotNumber();
+        }
+        if (lotCode == null || lotCode.isEmpty()) {
+            this.lotCode = generateLotCode();
+        }
     }
 
     private int generateLotNumber() {
-        return (int) (100000 + (id == null ? 0 : id));
+        // Для простоты можно просто сгенерировать случайный 6-значный номер
+        Random random = new Random();
+        return 100000 + random.nextInt(900000);
     }
 
     private String generateLotCode() {
         Random random = new Random();
-        return "" + (char) ('A' + random.nextInt(26)) +
-                (char) ('A' + random.nextInt(26)) +
-                (char) ('A' + random.nextInt(26)) +
-                (char) ('A' + random.nextInt(26));
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            code.append((char) ('A' + random.nextInt(26)));
+        }
+        return code.toString();
     }
-
 }
